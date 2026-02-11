@@ -1,1 +1,1 @@
-Hello thius is the jibuks super admin panel# Jibuks-super-admin-
+Hello this is the jibuks super admin panel
