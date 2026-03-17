@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 
+import { useBulkDeleteTasks } from '../api/api'
+
 type TaskMultiDeleteDialogProps<TData> = {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -24,6 +26,7 @@ export function TasksMultiDeleteDialog<TData>({
   table,
 }: TaskMultiDeleteDialogProps<TData>) {
   const [value, setValue] = useState('')
+  const { mutate: bulkDeleteMutation } = useBulkDeleteTasks()
 
   const selectedRows = table.getFilteredSelectedRowModel().rows
 
@@ -33,18 +36,18 @@ export function TasksMultiDeleteDialog<TData>({
       return
     }
 
-    onOpenChange(false)
+    const ids = selectedRows.map((row: any) => row.original.id)
 
-    toast.promise(sleep(2000), {
-      loading: 'Deleting tasks...',
-      success: () => {
+    bulkDeleteMutation(ids, {
+      onSuccess: () => {
+        toast.success(`Deleted ${selectedRows.length} ${selectedRows.length > 1 ? 'tasks' : 'task'}`)
         setValue('')
         table.resetRowSelection()
-        return `Deleted ${selectedRows.length} ${
-          selectedRows.length > 1 ? 'tasks' : 'task'
-        }`
+        onOpenChange(false)
       },
-      error: 'Error',
+      onError: () => {
+        toast.error('Failed to delete tasks')
+      }
     })
   }
 

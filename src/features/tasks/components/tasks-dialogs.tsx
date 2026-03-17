@@ -1,11 +1,14 @@
-import { showSubmittedData } from '@/lib/show-submitted-data'
+import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+import { useDeleteTask } from '../api/api'
+import { useTasks } from './tasks-provider'
 import { TasksImportDialog } from './tasks-import-dialog'
 import { TasksMutateDrawer } from './tasks-mutate-drawer'
-import { useTasks } from './tasks-provider'
 
 export function TasksDialogs() {
   const { open, setOpen, currentRow, setCurrentRow } = useTasks()
+  const { mutate: deleteMutation } = useDeleteTask()
+
   return (
     <>
       <TasksMutateDrawer
@@ -45,14 +48,18 @@ export function TasksDialogs() {
               }, 500)
             }}
             handleConfirm={() => {
-              setOpen(null)
-              setTimeout(() => {
-                setCurrentRow(null)
-              }, 500)
-              showSubmittedData(
-                currentRow,
-                'The following task has been deleted:'
-              )
+              deleteMutation(currentRow.id, {
+                onSuccess: () => {
+                  toast.success('Task deleted successfully')
+                  setOpen(null)
+                  setTimeout(() => {
+                    setCurrentRow(null)
+                  }, 500)
+                },
+                onError: () => {
+                  toast.error('Failed to delete task')
+                }
+              })
             }}
             className='max-w-md'
             title={`Delete this task: ${currentRow.id} ?`}
