@@ -25,6 +25,9 @@ import {
 import { SelectDropdown } from '@/components/select-dropdown'
 import { type Task } from '../data/schema'
 
+import { toast } from 'sonner'
+import { useCreateTask, useUpdateTask } from '../api/api'
+
 type TaskMutateDrawerProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -36,6 +39,7 @@ const formSchema = z.object({
   status: z.string().min(1, 'Please select a status.'),
   label: z.string().min(1, 'Please select a label.'),
   priority: z.string().min(1, 'Please choose a priority.'),
+  description: z.string().optional(),
 })
 type TaskForm = z.infer<typeof formSchema>
 
@@ -46,6 +50,9 @@ export function TasksMutateDrawer({
 }: TaskMutateDrawerProps) {
   const isUpdate = !!currentRow
 
+  const { mutate: createMutation, isPending: isCreating } = useCreateTask()
+  const { mutate: updateMutation, isPending: isUpdating } = useUpdateTask()
+
   const form = useForm<TaskForm>({
     resolver: zodResolver(formSchema),
     defaultValues: currentRow ?? {
@@ -53,15 +60,40 @@ export function TasksMutateDrawer({
       status: '',
       label: '',
       priority: '',
+      description: '',
     },
   })
 
   const onSubmit = (data: TaskForm) => {
-    // do something with the form data
-    onOpenChange(false)
-    form.reset()
-    showSubmittedData(data)
+    if (isUpdate && currentRow) {
+      updateMutation(
+        { id: currentRow.id, ...data },
+        {
+          onSuccess: () => {
+            toast.success('Task updated successfully')
+            onOpenChange(false)
+            form.reset()
+          },
+          onError: () => {
+             toast.error('Failed to update task')
+          }
+        }
+      )
+    } else {
+      createMutation(data, {
+        onSuccess: () => {
+          toast.success('Task created successfully')
+          onOpenChange(false)
+          form.reset()
+        },
+        onError: () => {
+           toast.error('Failed to create task')
+        }
+      })
+    }
   }
+
+  const isPending = isCreating || isUpdating
 
   return (
     <Sheet

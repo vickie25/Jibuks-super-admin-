@@ -24,17 +24,13 @@ import {
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { priorities, statuses } from '../data/data'
-import { type Task } from '../data/schema'
+import { useGetTasks } from '../api/api'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { tasksColumns as columns } from './tasks-columns'
 
 const route = getRouteApi('/_authenticated/tasks/')
 
-type DataTableProps = {
-  data: Task[]
-}
-
-export function TasksTable({ data }: DataTableProps) {
+export function TasksTable() {
   // Local UI-only states
   const [rowSelection, setRowSelection] = useState({})
   const [sorting, setSorting] = useState<SortingState>([])
@@ -64,6 +60,18 @@ export function TasksTable({ data }: DataTableProps) {
       { columnId: 'priority', searchKey: 'priority', type: 'array' },
     ],
   })
+
+  // Fetch tasks from API
+  const { data: tasksData, isLoading } = useGetTasks({
+    page: pagination.pageIndex + 1,
+    pageSize: pagination.pageSize,
+    filter: globalFilter,
+    status: columnFilters.find((f) => f.id === 'status')?.value as string[],
+    priority: columnFilters.find((f) => f.id === 'priority')?.value as string[],
+    // sort: sorting.length > 0 ? `${sorting[0].id}:${sorting[0].desc ? 'desc' : 'asc'}` : undefined
+  })
+
+  const data = tasksData?.data ?? []
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
@@ -97,6 +105,8 @@ export function TasksTable({ data }: DataTableProps) {
     onPaginationChange,
     onGlobalFilterChange,
     onColumnFiltersChange,
+    manualPagination: true,
+    pageCount: tasksData?.meta.totalPages ?? -1,
   })
 
   const pageCount = table.getPageCount()
@@ -155,7 +165,16 @@ export function TasksTable({ data }: DataTableProps) {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className='h-24 text-center'
+                >
+                  Loading tasks...
+                </TableCell>
+              </TableRow>
+            ) : data.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -190,7 +209,10 @@ export function TasksTable({ data }: DataTableProps) {
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} className='mt-auto' />
+      <DataTablePagination
+        table={table}
+        className='mt-auto'
+      />
       <DataTableBulkActions table={table} />
     </div>
   )
