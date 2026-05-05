@@ -36,12 +36,12 @@ export function UsersMultiDeleteDialog<TData>({
     onOpenChange(false)
 
     toast.promise(sleep(2000), {
-      loading: 'Deleting users...',
+      loading: 'Deleting tenants...',
       success: () => {
         setValue('')
         table.resetRowSelection()
         return `Deleted ${selectedRows.length} ${
-          selectedRows.length > 1 ? 'users' : 'user'
+          selectedRows.length > 1 ? 'tenants' : 'tenant'
         }`
       },
       error: 'Error',
@@ -61,13 +61,13 @@ export function UsersMultiDeleteDialog<TData>({
             size={18}
           />{' '}
           Delete {selectedRows.length}{' '}
-          {selectedRows.length > 1 ? 'users' : 'user'}
+          {selectedRows.length > 1 ? 'tenants' : 'tenant'}
         </span>
       }
       desc={
         <div className='space-y-4'>
           <p className='mb-2'>
-            Are you sure you want to delete the selected users? <br />
+            Are you sure you want to delete the selected tenants? <br />
             This action cannot be undone.
           </p>
 
@@ -83,7 +83,7 @@ export function UsersMultiDeleteDialog<TData>({
           <Alert variant='destructive'>
             <AlertTitle>Warning!</AlertTitle>
             <AlertDescription>
-              Please be careful, this operation can not be rolled back.
+              Please be careful, this operation is permanent and cannot be rolled back.
             </AlertDescription>
           </Alert>
         </div>

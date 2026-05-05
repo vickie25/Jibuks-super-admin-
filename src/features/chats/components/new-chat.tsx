@@ -1,6 +1,5 @@
-import { useState } from 'react'
-import { Check, X } from 'lucide-react'
-import { showSubmittedData } from '@/lib/show-submitted-data'
+import { useEffect, useState } from 'react'
+import { Check, Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,39 +13,70 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { type ChatUser } from '../data/chat-types'
-
-type User = Omit<ChatUser, 'messages'>
+import { useCreateConversation, useMessagingClients } from '../api/messaging-api'
+import { type MessagingClient } from '../data/messaging-schema'
 
 type NewChatProps = {
-  users: User[]
   open: boolean
   onOpenChange: (open: boolean) => void
+  onConversationOpened: (conversationId: string) => void
 }
-export function NewChat({ users, onOpenChange, open }: NewChatProps) {
-  const [selectedUsers, setSelectedUsers] = useState<User[]>([])
 
-  const handleSelectUser = (user: User) => {
-    if (!selectedUsers.find((u) => u.id === user.id)) {
-      setSelectedUsers([...selectedUsers, user])
-    } else {
-      handleRemoveUser(user.id)
-    }
-  }
+function displayName(client: MessagingClient) {
+  return client.name?.trim() || client.email
+}
 
-  const handleRemoveUser = (userId: string) => {
-    setSelectedUsers(selectedUsers.filter((user) => user.id !== userId))
-  }
+export function NewChat({
+  open,
+  onOpenChange,
+  onConversationOpened,
+}: NewChatProps) {
+  const [searchInput, setSearchInput] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [selectedClient, setSelectedClient] = useState<MessagingClient | null>(
+    null
+  )
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedSearch(searchInput), 300)
+    return () => window.clearTimeout(t)
+  }, [searchInput])
+
+  const { data, isLoading, isError } = useMessagingClients({
+    page: 1,
+    limit: 50,
+    search: debouncedSearch,
+    status: 'active',
+  })
+
+  const { mutate: createConversation, isPending } = useCreateConversation()
+
+  const clients = data?.data ?? []
 
   const handleOpenChange = (newOpen: boolean) => {
     onOpenChange(newOpen)
-    // Reset selected users when dialog closes
     if (!newOpen) {
-      setSelectedUsers([])
+      setSelectedClient(null)
+      setSearchInput('')
+      setDebouncedSearch('')
     }
+  }
+
+  const handleStartChat = () => {
+    if (!selectedClient) return
+    createConversation(
+      { clientId: selectedClient.id },
+      {
+        onSuccess: (conv) => {
+          onConversationOpened(conv.id)
+          handleOpenChange(false)
+        },
+      }
+    )
   }
 
   return (
@@ -54,71 +84,96 @@ export function NewChat({ users, onOpenChange, open }: NewChatProps) {
       <DialogContent className='sm:max-w-[600px]'>
         <DialogHeader>
           <DialogTitle>New message</DialogTitle>
+          <DialogDescription>
+            Search for a tenant client and open a conversation. One thread per
+            client.
+          </DialogDescription>
         </DialogHeader>
         <div className='flex flex-col gap-4'>
           <div className='flex flex-wrap items-baseline-last gap-2'>
             <span className='min-h-6 text-sm text-muted-foreground'>To:</span>
-            {selectedUsers.map((user) => (
-              <Badge key={user.id} variant='default'>
-                {user.fullName}
+            {selectedClient && (
+              <Badge key={selectedClient.id} variant='default'>
+                {displayName(selectedClient)}
                 <button
+                  type='button'
                   className='ms-1 rounded-full ring-offset-background outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2'
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleRemoveUser(user.id)
-                    }
-                  }}
-                  onClick={() => handleRemoveUser(user.id)}
+                  onClick={() => setSelectedClient(null)}
                 >
-                  <X className='h-3 w-3 text-muted-foreground hover:text-foreground' />
+                  <span className='sr-only'>Remove</span>×
                 </button>
               </Badge>
-            ))}
+            )}
           </div>
-          <Command className='rounded-lg border'>
+          <Command className='rounded-lg border' shouldFilter={false}>
             <CommandInput
-              placeholder='Search people...'
+              placeholder='Search by name or email...'
               className='text-foreground'
+              value={searchInput}
+              onValueChange={setSearchInput}
             />
             <CommandList>
-              <CommandEmpty>No people found.</CommandEmpty>
-              <CommandGroup>
-                {users.map((user) => (
-                  <CommandItem
-                    key={user.id}
-                    onSelect={() => handleSelectUser(user)}
-                    className='flex items-center justify-between gap-2 hover:bg-accent hover:text-accent-foreground'
-                  >
-                    <div className='flex items-center gap-2'>
-                      <img
-                        src={user.profile || '/placeholder.svg'}
-                        alt={user.fullName}
-                        className='h-8 w-8 rounded-full'
-                      />
-                      <div className='flex flex-col'>
-                        <span className='text-sm font-medium'>
-                          {user.fullName}
-                        </span>
-                        <span className='text-xs text-accent-foreground/70'>
-                          {user.username}
-                        </span>
-                      </div>
-                    </div>
-
-                    {selectedUsers.find((u) => u.id === user.id) && (
-                      <Check className='h-4 w-4' />
-                    )}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+              {isLoading ? (
+                <div className='flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground'>
+                  <Loader2 className='size-4 animate-spin' />
+                  Loading clients…
+                </div>
+              ) : isError ? (
+                <div className='py-6 text-center text-sm text-destructive'>
+                  Could not load clients. Check your connection and admin token.
+                </div>
+              ) : (
+                <>
+                  <CommandEmpty>No clients found.</CommandEmpty>
+                  <CommandGroup>
+                    {clients.map((client) => {
+                      const active = selectedClient?.id === client.id
+                      return (
+                        <CommandItem
+                          key={client.id}
+                          value={`${client.id}-${client.email}`}
+                          onSelect={() => setSelectedClient(client)}
+                          className='flex items-center justify-between gap-2'
+                        >
+                          <div className='flex items-center gap-2'>
+                            <img
+                              src={client.avatarUrl || '/placeholder.svg'}
+                              alt=''
+                              className='h-8 w-8 rounded-full'
+                            />
+                            <div className='flex flex-col'>
+                              <span className='text-sm font-medium'>
+                                {displayName(client)}
+                              </span>
+                              <span className='text-xs text-muted-foreground'>
+                                {client.email}
+                                {client.tenantName
+                                  ? ` · ${client.tenantName}`
+                                  : ''}
+                              </span>
+                            </div>
+                          </div>
+                          {active && <Check className='h-4 w-4' />}
+                        </CommandItem>
+                      )
+                    })}
+                  </CommandGroup>
+                </>
+              )}
             </CommandList>
           </Command>
           <Button
-            variant={'default'}
-            onClick={() => showSubmittedData(selectedUsers)}
-            disabled={selectedUsers.length === 0}
+            onClick={handleStartChat}
+            disabled={!selectedClient || isPending}
           >
-            Chat
+            {isPending ? (
+              <>
+                <Loader2 className='me-2 size-4 animate-spin' />
+                Opening…
+              </>
+            ) : (
+              'Open conversation'
+            )}
           </Button>
         </div>
       </DialogContent>

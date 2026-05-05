@@ -19,7 +19,7 @@ import { UsersDialogs } from '@/features/users/components/users-dialogs'
 import { UsersPrimaryButtons } from '@/features/users/components/users-primary-buttons'
 import { UsersProvider } from '@/features/users/components/users-provider'
 import { UsersTable } from '@/features/users/components/users-table'
-import { users } from '@/features/users/data/users'
+import { useGetTenants } from '@/features/users/api/tenants-api'
 
 export const Route = createFileRoute('/clerk/_authenticated/user-management')({
   component: UserManagement,
@@ -28,6 +28,7 @@ export const Route = createFileRoute('/clerk/_authenticated/user-management')({
 function UserManagement() {
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
+  const { data: tenants, isLoading, error } = useGetTenants()
 
   const [opened, setOpened] = useState(true)
   const { isLoaded, isSignedIn } = useAuth()
@@ -59,10 +60,12 @@ function UserManagement() {
           <Main>
             <div className='mb-2 flex flex-wrap items-center justify-between space-y-2'>
               <div>
-                <h2 className='text-2xl font-bold tracking-tight'>User List</h2>
+                <h2 className='text-2xl font-bold tracking-tight'>
+                  Tenant List
+                </h2>
                 <div className='flex gap-1'>
                   <p className='text-muted-foreground'>
-                    Manage your users and their roles here.
+                    Manage your platform tenants and their account types here.
                   </p>
                   <LearnMore
                     open={opened}
@@ -90,7 +93,21 @@ function UserManagement() {
               <UsersPrimaryButtons />
             </div>
             <div className='-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12'>
-              <UsersTable data={users} navigate={navigate} search={search} />
+              {isLoading ? (
+                <div className='flex flex-1 items-center justify-center py-12'>
+                  <Loader2 className='h-8 w-8 animate-spin text-primary' />
+                </div>
+              ) : error ? (
+                <div className='flex flex-1 items-center justify-center py-12 text-destructive'>
+                  Error loading tenants. Please try again later.
+                </div>
+              ) : (
+                <UsersTable
+                  data={tenants ?? []}
+                  navigate={navigate}
+                  search={search}
+                />
+              )}
             </div>
           </Main>
 

@@ -7,26 +7,26 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ConfirmDialog } from '@/components/confirm-dialog'
-import { type User } from '../data/schema'
+import { type Tenant } from '../data/tenant-schema'
 
-type UserDeleteDialogProps = {
+type TenantDeleteDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  currentRow: User
+  currentRow: Tenant
 }
 
 export function UsersDeleteDialog({
   open,
   onOpenChange,
   currentRow,
-}: UserDeleteDialogProps) {
+}: TenantDeleteDialogProps) {
   const [value, setValue] = useState('')
 
   const handleDelete = () => {
-    if (value.trim() !== currentRow.username) return
+    if (value.trim() !== currentRow.slug) return
 
     onOpenChange(false)
-    showSubmittedData(currentRow, 'The following user has been deleted:')
+    showSubmittedData(currentRow, 'The following tenant has been deleted:')
   }
 
   return (
@@ -34,42 +34,42 @@ export function UsersDeleteDialog({
       open={open}
       onOpenChange={onOpenChange}
       handleConfirm={handleDelete}
-      disabled={value.trim() !== currentRow.username}
+      disabled={value.trim() !== currentRow.slug}
       title={
         <span className='text-destructive'>
           <AlertTriangle
             className='me-1 inline-block stroke-destructive'
             size={18}
           />{' '}
-          Delete User
+          Delete Tenant
         </span>
       }
       desc={
         <div className='space-y-4'>
           <p className='mb-2'>
             Are you sure you want to delete{' '}
-            <span className='font-bold'>{currentRow.username}</span>?
+            <span className='font-bold'>{currentRow.name}</span>?
             <br />
-            This action will permanently remove the user with the role of{' '}
+            This action will permanently remove the tenant{' '}
             <span className='font-bold'>
-              {currentRow.role.toUpperCase()}
+              {currentRow.slug}
             </span>{' '}
-            from the system. This cannot be undone.
+            and all associated data from the platform. This cannot be undone.
           </p>
 
           <Label className='my-2'>
-            Username:
+            Tenant Slug:
             <Input
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder='Enter username to confirm deletion.'
+              placeholder='Enter slug to confirm deletion.'
             />
           </Label>
 
           <Alert variant='destructive'>
             <AlertTitle>Warning!</AlertTitle>
             <AlertDescription>
-              Please be careful, this operation can not be rolled back.
+              Please be careful, this operation is permanent and cannot be reversed.
             </AlertDescription>
           </Alert>
         </div>

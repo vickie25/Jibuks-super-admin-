@@ -4,6 +4,8 @@ export interface Admin {
   name: string
   phone?: string
   organization: string
+  /** Profile image URL when the API returns one */
+  avatarUrl?: string | null
   isActive?: boolean
   createdAt?: string
 }

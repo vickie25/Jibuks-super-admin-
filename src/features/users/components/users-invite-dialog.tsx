@@ -24,20 +24,20 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { SelectDropdown } from '@/components/select-dropdown'
-import { roles } from '../data/data'
+// Removed unused roles import
 
 const formSchema = z.object({
   email: z.email({
     error: (iss) =>
       iss.input === '' ? 'Please enter an email to invite.' : undefined,
   }),
-  role: z.string().min(1, 'Role is required.'),
+  tenantType: z.string().min(1, 'Tenant Type is required.'),
   desc: z.string().optional(),
 })
 
-type UserInviteForm = z.infer<typeof formSchema>
+type TenantInviteForm = z.infer<typeof formSchema>
 
-type UserInviteDialogProps = {
+type TenantInviteDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -45,13 +45,13 @@ type UserInviteDialogProps = {
 export function UsersInviteDialog({
   open,
   onOpenChange,
-}: UserInviteDialogProps) {
-  const form = useForm<UserInviteForm>({
+}: TenantInviteDialogProps) {
+  const form = useForm<TenantInviteForm>({
     resolver: zodResolver(formSchema),
-    defaultValues: { email: '', role: '', desc: '' },
+    defaultValues: { email: '', tenantType: '', desc: '' },
   })
 
-  const onSubmit = (values: UserInviteForm) => {
+  const onSubmit = (values: TenantInviteForm) => {
     form.reset()
     showSubmittedData(values)
     onOpenChange(false)
@@ -68,16 +68,16 @@ export function UsersInviteDialog({
       <DialogContent className='sm:max-w-md'>
         <DialogHeader className='text-start'>
           <DialogTitle className='flex items-center gap-2'>
-            <MailPlus /> Invite User
+            <MailPlus /> Invite Tenant
           </DialogTitle>
           <DialogDescription>
-            Invite new user to join your team by sending them an email
-            invitation. Assign a role to define their access level.
+            Invite a new tenant to join the platform by sending them an email
+            invitation. Assign a tenant type to define their plan level.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
-            id='user-invite-form'
+            id='tenant-invite-form'
             onSubmit={form.handleSubmit(onSubmit)}
             className='space-y-4'
           >
@@ -100,18 +100,19 @@ export function UsersInviteDialog({
             />
             <FormField
               control={form.control}
-              name='role'
+              name='tenantType'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Role</FormLabel>
+                  <FormLabel>Tenant Type</FormLabel>
                   <SelectDropdown
                     defaultValue={field.value}
                     onValueChange={field.onChange}
-                    placeholder='Select a role'
-                    items={roles.map(({ label, value }) => ({
-                      label,
-                      value,
-                    }))}
+                    placeholder='Select a type'
+                    items={[
+                      { label: 'Personal', value: 'PERSONAL' },
+                      { label: 'Business', value: 'BUSINESS' },
+                      { label: 'Enterprise', value: 'ENTERPRISE' },
+                    ]}
                   />
                   <FormMessage />
                 </FormItem>
@@ -140,7 +141,7 @@ export function UsersInviteDialog({
           <DialogClose asChild>
             <Button variant='outline'>Cancel</Button>
           </DialogClose>
-          <Button type='submit' form='user-invite-form'>
+          <Button type='submit' form='tenant-invite-form'>
             Invite <Send />
           </Button>
         </DialogFooter>

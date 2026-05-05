@@ -7,6 +7,7 @@ import { Loader2, LogIn } from 'lucide-react'
 import { toast } from 'sonner'
 import { IconFacebook, IconGithub } from '@/assets/brand-icons'
 import { useAuthStore } from '@/stores/auth-store'
+import { parseRedirectTarget } from '@/lib/auth-redirect'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useLoginAdmin } from '../../api/auth-api'
@@ -64,8 +65,7 @@ export function UserAuthForm({
         
         toast.success(`Welcome back, ${res.admin.name}!`)
 
-        // Redirect to the stored location or default to dashboard
-        const targetPath = redirectTo || '/'
+        const targetPath = parseRedirectTarget(redirectTo)
         navigate({ to: targetPath, replace: true })
       },
       onError: () => {

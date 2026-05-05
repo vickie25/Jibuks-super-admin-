@@ -22,13 +22,12 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { roles } from '../data/data'
-import { type User } from '../data/schema'
+import { type Tenant } from '../data/tenant-schema'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { usersColumns as columns } from './users-columns'
 
 type DataTableProps = {
-  data: User[]
+  data: Tenant[]
   search: Record<string, unknown>
   navigate: NavigateFn
 }
@@ -56,10 +55,9 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
     pagination: { defaultPage: 1, defaultPageSize: 10 },
     globalFilter: { enabled: false },
     columnFilters: [
-      // username per-column text filter
-      { columnId: 'username', searchKey: 'username', type: 'string' },
-      { columnId: 'status', searchKey: 'status', type: 'array' },
-      { columnId: 'role', searchKey: 'role', type: 'array' },
+      // name per-column text filter
+      { columnId: 'name', searchKey: 'name', type: 'string' },
+      { columnId: 'tenantType', searchKey: 'type', type: 'array' },
     ],
   })
 
@@ -101,23 +99,17 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
     >
       <DataTableToolbar
         table={table}
-        searchPlaceholder='Filter users...'
-        searchKey='username'
+        searchPlaceholder='Filter tenants...'
+        searchKey='name'
         filters={[
           {
-            columnId: 'status',
-            title: 'Status',
+            columnId: 'tenantType',
+            title: 'Type',
             options: [
-              { label: 'Active', value: 'active' },
-              { label: 'Inactive', value: 'inactive' },
-              { label: 'Invited', value: 'invited' },
-              { label: 'Suspended', value: 'suspended' },
+              { label: 'Personal', value: 'PERSONAL' },
+              { label: 'Business', value: 'BUSINESS' },
+              { label: 'Enterprise', value: 'ENTERPRISE' },
             ],
-          },
-          {
-            columnId: 'role',
-            title: 'Role',
-            options: roles.map((role) => ({ ...role })),
           },
         ]}
       />

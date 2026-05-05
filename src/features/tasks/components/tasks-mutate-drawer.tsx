@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { showSubmittedData } from '@/lib/show-submitted-data'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -234,7 +233,7 @@ export function TasksMutateDrawer({
           <SheetClose asChild>
             <Button variant='outline'>Close</Button>
           </SheetClose>
-          <Button form='tasks-form' type='submit'>
+          <Button form='tasks-form' type='submit' disabled={isPending}>
             Save changes
           </Button>
         </SheetFooter>

@@ -1,4 +1,8 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import {
+  useMutation,
+  useQuery,
+  type UseQueryOptions,
+} from '@tanstack/react-query'
 import apiClient from '@/lib/api-client'
 import {
   AuthResponse,
@@ -31,13 +35,16 @@ export const useLoginAdmin = () => {
   })
 }
 
-export const useGetCurrentAdmin = () => {
+export const useGetCurrentAdmin = (
+  options?: Omit<UseQueryOptions<Admin>, 'queryKey' | 'queryFn'>
+) => {
   return useQuery({
     queryKey: ['admin-me'],
     queryFn: async () => {
       const { data } = await apiClient.get<Admin>('/admin/me')
       return data
     },
+    ...options,
   })
 }
 
