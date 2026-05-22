@@ -1,6 +1,6 @@
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { type Row } from '@tanstack/react-table'
-import { Trash2, Edit } from 'lucide-react'
+import { Trash2, Edit, Activity } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -19,6 +19,8 @@ type DataTableRowActionsProps = {
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const { setOpen, setCurrentRow } = useUsers()
+  const tenant = row.original
+
   return (
     <>
       <DropdownMenu modal={false}>
@@ -34,7 +36,20 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         <DropdownMenuContent align='end' className='w-[160px]'>
           <DropdownMenuItem
             onClick={() => {
-              setCurrentRow(row.original)
+              setCurrentRow(tenant)
+              // Navigate to activity monitoring (Tenant Profile Overview)
+              window.location.href = `/users/${tenant.id}/activity`
+            }}
+          >
+            Activity Monitoring
+            <DropdownMenuShortcut>
+              <Activity size={16} />
+            </DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => {
+              setCurrentRow(tenant)
               setOpen('edit')
             }}
           >
@@ -46,7 +61,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => {
-              setCurrentRow(row.original)
+              setCurrentRow(tenant)
               setOpen('delete')
             }}
             className='text-red-500!'
