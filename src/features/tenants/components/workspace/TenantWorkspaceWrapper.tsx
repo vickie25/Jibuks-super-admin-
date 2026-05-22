@@ -53,7 +53,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Switch } from '@/components/ui/switch'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -168,22 +168,23 @@ export function TenantWorkspaceWrapper() {
 
         {/* ─── Tabs Navigation (Matches Stitch layout + Business Modules) ─── */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-6'>
-          <TabsList className='inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground w-full lg:w-auto overflow-x-auto overflow-y-hidden no-scrollbar'>
-            <TabsTrigger value='overview' className='gap-2'><LayoutDashboard size={14} /> Overview</TabsTrigger>
-            <TabsTrigger value='sales' className='gap-2'><ShoppingCart size={14} /> Sales</TabsTrigger>
-            <TabsTrigger value='purchases' className='gap-2'><Package size={14} /> Purchases</TabsTrigger>
-            <TabsTrigger value='inventory' className='gap-2'><Archive size={14} /> Inventory</TabsTrigger>
-            <TabsTrigger value='accounting' className='gap-2'><Wallet size={14} /> Accounting</TabsTrigger>
-            <TabsTrigger value='banking' className='gap-2'><Landmark size={14} /> Banking</TabsTrigger>
-            <TabsTrigger value='assets' className='gap-2'><TrendingUp size={14} /> Assets</TabsTrigger>
-            <TabsTrigger value='lending' className='gap-2'><Banknote size={14} /> Lending</TabsTrigger>
-            <TabsTrigger value='reports' className='gap-2'><BarChart3 size={14} /> Reports</TabsTrigger>
-            <TabsTrigger value='staff' className='gap-2'><UsersIcon size={14} /> Staff</TabsTrigger>
-            <TabsTrigger value='settings' className='gap-2'><Settings size={14} /> Settings</TabsTrigger>
-            <TabsTrigger value='audit' className='gap-2'><History size={14} /> Audit Logs</TabsTrigger>
-            <TabsTrigger value='modules' className='gap-2'><Activity size={14} /> Module Control</TabsTrigger>
-            <TabsTrigger value='system' className='gap-2'><Layers size={14} /> System Control</TabsTrigger>
-          </TabsList>
+          <ScrollArea orientation='horizontal' className='w-full whitespace-nowrap pb-2'>
+            <TabsList className='inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground w-max'>
+              <TabsTrigger value='overview' className='gap-2'><LayoutDashboard size={14} /> Overview</TabsTrigger>
+              <TabsTrigger value='sales' className='gap-2'><ShoppingCart size={14} /> Sales</TabsTrigger>
+              <TabsTrigger value='purchases' className='gap-2'><Package size={14} /> Purchases</TabsTrigger>
+              <TabsTrigger value='inventory' className='gap-2'><Archive size={14} /> Inventory</TabsTrigger>
+              <TabsTrigger value='accounting' className='gap-2'><Wallet size={14} /> Accounting</TabsTrigger>
+              <TabsTrigger value='banking' className='gap-2'><Landmark size={14} /> Banking</TabsTrigger>
+              <TabsTrigger value='assets' className='gap-2'><TrendingUp size={14} /> Assets</TabsTrigger>
+              <TabsTrigger value='lending' className='gap-2'><Banknote size={14} /> Lending</TabsTrigger>
+              <TabsTrigger value='reports' className='gap-2'><BarChart3 size={14} /> Reports</TabsTrigger>
+              <TabsTrigger value='staff' className='gap-2'><UsersIcon size={14} /> Staff</TabsTrigger>
+              <TabsTrigger value='settings' className='gap-2'><Settings size={14} /> Settings</TabsTrigger>
+              <TabsTrigger value='system' className='gap-2'><Layers size={14} /> System Control</TabsTrigger>
+            </TabsList>
+            <ScrollBar orientation='horizontal' />
+          </ScrollArea>
 
           <>
             {/* ═══════════════ OVERVIEW TAB ═══════════════ */}
@@ -357,102 +358,6 @@ export function TenantWorkspaceWrapper() {
 
             <TabsContent value='settings' className='m-0 space-y-6 focus-visible:outline-none outline-none'>
               <SettingsDashboard />
-            </TabsContent>
-
-            {/* ═══════════════ AUDIT LOGS TAB (from Stitch) ═══════════════ */}
-            <TabsContent value='audit' className='m-0 space-y-6 focus-visible:outline-none outline-none'>
-              <Card className='shadow-sm border-none'>
-                <CardHeader>
-                  <div className='flex items-center justify-between'>
-                    <div>
-                      <CardTitle className='text-xl'>Comprehensive Audit Log</CardTitle>
-                      <CardDescription>View every action performed by users and system processes</CardDescription>
-                    </div>
-                    <div className='flex items-center gap-2'>
-                      <div className='relative'>
-                        <SearchIcon className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
-                        <Input placeholder='Filter events...' className='pl-8 w-[250px] h-9' />
-                      </div>
-                      <Button variant='outline' size='icon' className='h-9 w-9'><Filter size={16} /></Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow className='hover:bg-transparent'>
-                        <TableHead className='w-[200px]'>Timestamp</TableHead>
-                        <TableHead>Action</TableHead>
-                        <TableHead>Actor</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead className='text-right'>Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {auditLogs.map((log) => (
-                        <TableRow key={log.id} className='group'>
-                          <TableCell className='text-xs text-muted-foreground font-mono'>
-                            Oct 24, 2023 • 14:45:12
-                          </TableCell>
-                          <TableCell className='font-medium'>
-                            <div className='flex items-center gap-2'>
-                              {log.status === 'success' ? <CheckCircle2 size={12} className='text-emerald-500' /> : <AlertTriangle size={12} className='text-amber-500' />}
-                              {log.action}
-                            </div>
-                          </TableCell>
-                          <TableCell>{log.user}</TableCell>
-                          <TableCell>
-                            <Badge variant='secondary' className='text-[10px] uppercase py-0 h-4'>{log.category}</Badge>
-                          </TableCell>
-                          <TableCell className='text-right'>
-                            <Button variant='ghost' size='sm' className='h-8 px-2 group-hover:bg-muted'>
-                              View Context <ChevronRight size={14} className='ml-1' />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* ═══════════════ MODULE CONTROL TAB (from Stitch) ═══════════════ */}
-            <TabsContent value='modules' className='m-0 space-y-6 focus-visible:outline-none outline-none'>
-              <div className='grid gap-6 md:grid-cols-2'>
-                {modules.map((mod) => (
-                  <Card key={mod.name} className='shadow-sm border-none overflow-hidden'>
-                    <div className={`h-1 w-full ${mod.active ? 'bg-primary' : 'bg-muted'}`} />
-                    <CardHeader className='pb-3'>
-                      <div className='flex items-center justify-between'>
-                        <div className='flex items-center gap-3'>
-                          <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${mod.active ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                            {mod.icon}
-                          </div>
-                          <CardTitle className='text-base'>{mod.name}</CardTitle>
-                        </div>
-                        <Switch checked={mod.active} />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className='text-sm text-muted-foreground leading-relaxed'>
-                        {mod.description}
-                      </p>
-                      <div className='mt-4 flex items-center justify-between'>
-                        <div className='flex items-center gap-2'>
-                          <div className={`h-2 w-2 rounded-full ${mod.active ? 'bg-emerald-500' : 'bg-muted'}`} />
-                          <span className='text-[10px] uppercase font-bold tracking-wider text-muted-foreground'>
-                            {mod.active ? 'Module Active' : 'Disabled'}
-                          </span>
-                        </div>
-                        <Button variant='ghost' size='sm' className='h-7 text-[11px] gap-1 px-2'>
-                          Config <Settings size={12} />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
             </TabsContent>
 
             {/* ═══════════════ SYSTEM CONTROL TAB (from Stitch) ═══════════════ */}
